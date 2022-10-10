@@ -28,46 +28,44 @@ const createUser = async (req, res) => {
 
         if (!password) return res.status(400).send({ status: false, message: "Password is required" });
 
-        address = JSON.parse(address)
+       // address = JSON.parse(address)
 
-        if (!address) return res.status(400).send({ status: false, message: "Address is required" });
-        if (!address.shipping) return res.status(400).send({ status: false, message: "shipping is required" });
-        if (!address.shipping.street) return res.status(400).send({ status: false, message: "shipping street is required" });
-        if (!address.shipping.city) return res.status(400).send({ status: false, message: "shipping city is required" });
-        if (!address.shipping.pincode) return res.status(400).send({ status: false, message: "shipping pincode is required" });
-       if (!address.billing) return res.status(400).send({ status: false, message: "billing is required" });
-         if (!address.billing.street) return res.status(400).send({ status: false, message: "billing street is required" });
-         if (!address.billing.city) return res.status(400).send({ status: false, message: "billing is city required" });
-         if (!address.billing.pincode) return res.status(400).send({ status: false, message: "billing pincode is required" });
+    //     if (!address) return res.status(400).send({ status: false, message: "Address is required" });
+    //     if (!address.shipping) return res.status(400).send({ status: false, message: "shipping is required" });
+    //     if (!address.shipping.street) return res.status(400).send({ status: false, message: "shipping street is required" });
+    //     if (!address.shipping.city) return res.status(400).send({ status: false, message: "shipping city is required" });
+    //     if (!address.shipping.pincode) return res.status(400).send({ status: false, message: "shipping pincode is required" });
+    //    if (!address.billing) return res.status(400).send({ status: false, message: "billing is required" });
+    //      if (!address.billing.street) return res.status(400).send({ status: false, message: "billing street is required" });
+    //      if (!address.billing.city) return res.status(400).send({ status: false, message: "billing is city required" });
+    //      if (!address.billing.pincode) return res.status(400).send({ status: false, message: "billing pincode is required" });
      
 
-        
-
-        if (isValid(address)) return res.status(400).send({ status: false, message: "Address should be in object and must contain shipping and billing addresses" });
+        // if (isValid(address)) return res.status(400).send({ status: false, message: "Address should be in object and must contain shipping and billing addresses" });
 
 
-        if (isValid(address.shipping)) return res.status(400).send({ status: false, message: "Shipping address should be in object and must contain street, city and pincode" });
+        // if (isValid(address.shipping)) return res.status(400).send({ status: false, message: "Shipping address should be in object and must contain street, city and pincode" });
 
 
-        if (isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Street is required of shipping address and should not be empty string" });
+        // if (isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Street is required of shipping address and should not be empty string" });
 
 
-        if (isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "City is required of shipping address and should not be empty string" });
+        // if (isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "City is required of shipping address and should not be empty string" });
 
 
-        if (!isValidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Enter a valid pincode" });
+        // if (!isValidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Enter a valid pincode" });
 
 
-        if (isValid(address.billing)) return res.status(400).send({ status: false, message: "Billing address should be in object and must contain street, city and pincode" });
+        // if (isValid(address.billing)) return res.status(400).send({ status: false, message: "Billing address should be in object and must contain street, city and pincode" });
 
 
-        if (isValid(address.billing.street)) return res.status(400).send({ status: false, message: "Street is required of billing address and should not be empty string" });
+        // if (isValid(address.billing.street)) return res.status(400).send({ status: false, message: "Street is required of billing address and should not be empty string" });
 
 
-        if (isValid(address.billing.city)) return res.status(400).send({ status: false, message: "City is required of billing address and should not be empty string" });
+        // if (isValid(address.billing.city)) return res.status(400).send({ status: false, message: "City is required of billing address and should not be empty string" });
 
       
-        if (!isValidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "Enter a valid pincode" });
+        // if (!isValidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "Enter a valid pincode" });
 
 
         if (!isValidEmail(email)) return res.status(400).send({ status: false, message: "Enter a valid email-id" });
@@ -92,16 +90,16 @@ const createUser = async (req, res) => {
             return res.status(400).send({ status: "false", msg: "Found Error in Uploading files..." })
         }
         let fileUploaded = await uploadFile(files[0])
-
+console.log(fileUploaded)
         data.profileImage = fileUploaded
-
+console.log(address)
  //bcrypt password
         data.password = await bcrypt.hash(password, 10)
-
+console.log(data.password)
         let responseData = await User.create(data);
         res.status(201).send({ status: true, message: "User created successfully", data: responseData })
 
-    } catch (err) {
+   } catch (err) {
         res.status(500).send({ status: false, error: err.message })
     }
 
