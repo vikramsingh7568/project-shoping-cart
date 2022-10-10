@@ -62,3 +62,13 @@ const userSchema = new mongoose.Schema({
 module.exports = mongoose.model("User" , userSchema)
 
 
+
+//    {"shipping":{
+//       "street": "FC Road",
+//       "city": "Pune",
+//       "pincode": 123456},
+//     "billing": {
+//         "street": "FC Road",
+//         "city": "Pune",
+//         "pincode" : 123456}}
+    
