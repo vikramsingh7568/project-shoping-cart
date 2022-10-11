@@ -1,12 +1,7 @@
-const User = require("../models/userModel");
-<<<<<<< HEAD
+const userModel = require("../models/userModel");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
-const bcrypt = require("bcrypt");
-//const jwt = require('jsonwebtoken')
-=======
-const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken')
->>>>>>> c0891d6ce58b27913ec932a1e91d3356a8996317
 const {
   isValid,
   isValidPhone,
@@ -24,20 +19,16 @@ const createUser = async (req, res) => {
     data.address = address;
 
     if (isValid(fname))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "First name is required and should not be an empty string",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "First name is required and should not be an empty string",
+      });
 
     if (isValid(lname))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "Last name is required and should not be an empty string",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "Last name is required and should not be an empty string",
+      });
 
     if (!email)
       return res
@@ -93,47 +84,39 @@ const createUser = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: "billing is city required" });
-        
+
     if (!address.billing.pincode)
       return res
         .status(400)
         .send({ status: false, message: "billing pincode is required" });
 
     if (isValid(address))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Address should be in object and must contain shipping and billing addresses",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Address should be in object and must contain shipping and billing addresses",
+      });
 
     if (isValid(address.shipping))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Shipping address should be in object and must contain street, city and pincode",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Shipping address should be in object and must contain street, city and pincode",
+      });
 
     if (isValid(address.shipping.street))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Street is required of shipping address and should not be empty string",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Street is required of shipping address and should not be empty string",
+      });
 
     if (isValid(address.shipping.city))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "City is required of shipping address and should not be empty string",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "City is required of shipping address and should not be empty string",
+      });
 
     if (!isValidPincode(address.shipping.pincode))
       return res
@@ -141,31 +124,25 @@ const createUser = async (req, res) => {
         .send({ status: false, message: "Enter a valid pincode" });
 
     if (isValid(address.billing))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Billing address should be in object and must contain street, city and pincode",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Billing address should be in object and must contain street, city and pincode",
+      });
 
     if (isValid(address.billing.street))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Street is required of billing address and should not be empty string",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Street is required of billing address and should not be empty string",
+      });
 
     if (isValid(address.billing.city))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "City is required of billing address and should not be empty string",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "City is required of billing address and should not be empty string",
+      });
 
     if (!isValidPincode(address.billing.pincode))
       return res
@@ -183,21 +160,19 @@ const createUser = async (req, res) => {
         .send({ status: false, message: "Enter a valid phone number" });
 
     if (!isValidPwd(password))
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Password should be 8-15 characters long and must contain one of 0-9,A-Z,a-z and special characters",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Password should be 8-15 characters long and must contain one of 0-9,A-Z,a-z and special characters",
+      });
 
-    let checkEmail = await User.findOne({ email: email });
+    let checkEmail = await userModel.findOne({ email: email });
     if (checkEmail)
       return res
         .status(409)
         .send({ status: false, message: "Email already exist" });
 
-    let checkPhone = await User.findOne({ phone: phone });
+    let checkPhone = await userModel.findOne({ phone: phone });
     if (checkPhone)
       return res
         .status(409)
@@ -217,18 +192,71 @@ const createUser = async (req, res) => {
     //bcrypt password
     data.password = await bcrypt.hash(password, 10);
 
-    let responseData = await User.create(data);
+    let responseData = await userModel.create(data);
 
-    res
-      .status(201)
-      .send({
-        status: true,
-        message: "User created successfully",
-        data: responseData,
-      });
+    res.status(201).send({
+      status: true,
+      message: "User created successfully",
+      data: responseData,
+    });
   } catch (err) {
     res.status(500).send({ status: false, error: err.message });
   }
 };
 
-module.exports = { createUser };
+//---------------------LOGIN-USER-FUNCTION------------------------------//
+
+const loginUser = async function (req, res) {
+  try {
+    const data = req.body;
+    const email = data.email;
+
+    let password = data.password;
+    if (Object.keys(data).length == 0) {
+      return res
+        .status(400)
+        .send({ status: false, msg: "Please Enter email and Password" });
+    }
+    if (!email) {
+      return res.status(400).send({ status: false, msg: "Please Enter email" });
+    }
+    email.toLowerCase();
+    if (!password) {
+      return res
+        .status(400)
+        .send({ status: false, msg: "Please Enter password" });
+    }
+    const user = await userModel.findOne({ email: email });
+
+    if (!user) {
+      return res.status(401).send({ status: false, msg: "Invalid User" });
+    }
+    const tempPassword = user.password;
+    const match = await bcrypt.compare(password, tempPassword);
+
+    if (match) {
+      let token = await jwt.sign(
+        { id: user._id.toString() },
+        "FunctionUp-Group-55-aorijhg@#",
+        { expiresIn: "2hr" }
+      );
+      res.header({ "authorisation": token });
+      return res
+        .status(200)
+        .send({
+          status: true,
+          msg: "User LoggedIn Succesfully",
+          data: { userId: user._id, token: token },
+        });
+    }
+    if (!match) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Password Incorrect" });
+    }
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+module.exports = { createUser, loginUser };
