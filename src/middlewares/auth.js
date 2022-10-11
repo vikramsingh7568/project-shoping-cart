@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { isValidObjectId } = require("mongoose");
+const { isValidId } = require("../validators/validation");
 const UserModel = require("../models/UserModel");
 
 // authenication
@@ -36,7 +36,7 @@ const authorise = async function (req, res) {
     let userId = req.params.userId;
     let allowedUser = req.decodedToken;
 
-    if (!isValidObjectId(userId))
+    if (!isValidId(userId))
       return res.status(400).send({ status: false, message: "Invalid UserId" });
 
     let user = await UserModel.findById(userId);

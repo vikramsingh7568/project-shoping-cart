@@ -8,6 +8,7 @@ const {
   isValidEmail,
   isValidPwd,
   isValidPincode,
+  isValidId
 } = require("../validators/validation");
 const { uploadFile } = require("../validators/aws");
 
@@ -240,14 +241,12 @@ const loginUser = async function (req, res) {
         "FunctionUp-Group-55-aorijhg@#",
         { expiresIn: "2hr" }
       );
-      res.header({ "authorisation": token });
-      return res
-        .status(200)
-        .send({
-          status: true,
-          msg: "User LoggedIn Succesfully",
-          data: { userId: user._id, token: token },
-        });
+      res.header({ authorisation: token });
+      return res.status(200).send({
+        status: true,
+        msg: "User LoggedIn Succesfully",
+        data: { userId: user._id, token: token },
+      });
     }
     if (!match) {
       return res
@@ -259,4 +258,36 @@ const loginUser = async function (req, res) {
   }
 };
 
-module.exports = { createUser, loginUser };
+const userDetails = async function (req, res) {
+  try {
+    let userId = req.params.userId;
+
+    if (!isValidId(userId))
+      return res.status(400).send({ status: false, message: "Invalid userId" });
+
+    // authorisation
+    if (userId != decodedToken.userId)
+      return res
+        .status(403)
+        .send({ status: false, message: "Unauthorised access" });
+
+    let userdetails = await UserModel.findById({ _id: userId });
+
+    if (!userdetails)
+      return res
+        .status(400)
+        .send({ status: false, message: "No user found with this userId" });
+
+    return res
+      .status(200)
+      .send({
+        status: true,
+        message: "User profile details",
+        data: userdetails,
+      });
+  } catch (error) {
+    res.status(500).send({ status: false, error: error.message });
+  }
+};
+
+module.exports = { createUser, loginUser, userDetails };

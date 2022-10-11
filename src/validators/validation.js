@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const isValid = (value) => {
   if(typeof value === "undefined" || typeof value === "null") return true;
@@ -7,6 +8,10 @@ const isValid = (value) => {
   
   return false; 
 }
+
+const isValidId = function (id) {
+  return mongoose.Types.ObjectId.isValid(id);
+};
 
 const isValidBody = (reqBody) => {
   return Object.keys(reqBody).length == 0;
@@ -30,4 +35,4 @@ const isValidPincode = (num) => {
   }
 
 
-module.exports = { isValid, isValidBody,isValidPhone, isValidEmail, isValidPwd , isValidPincode}
+module.exports = { isValid, isValidBody,isValidPhone, isValidEmail, isValidPwd , isValidPincode,isValidId}
