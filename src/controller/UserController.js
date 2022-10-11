@@ -1,4 +1,4 @@
-const userModel = require("../models/userModel");
+const userModel = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -244,7 +244,7 @@ const loginUser = async function (req, res) {
         "FunctionUp-Group-55-aorijhg@#",
         { expiresIn: "2hr" }
       );
-      res.authorisation({ BearerToken: token });
+      res.header({ BearerToken: token });
       return res.status(200).send({
         status: true,
         msg: "User LoggedIn Succesfully",
@@ -264,12 +264,12 @@ const loginUser = async function (req, res) {
 const userDetails = async function (req, res) {
   try {
     let userId = req.params.userId;
-
+   
     if (!isValidId(userId))
       return res.status(400).send({ status: false, message: "Invalid userId" });
 
     // authorisation
-    if (userId != decodedToken.userId)
+    if (userId != req.decodedToken.id)
       return res
         .status(403)
         .send({ status: false, message: "Unauthorised access" });

@@ -4,15 +4,15 @@ const mongoose = require("mongoose")
 const userModel = require("../models/UserModel");
 
 // authenication
-const authenticate = async function (req, res) {
+const authenticate = async function (req, res,next) {
   try {
-    let bearerToken = req.headers
-    console.log(bearerToken)
+    let bearerToken = req.headers.authorization
 
     if (!bearerToken)
       return res
         .status(401)
         .send({ status: false, message: "Token is required" });
+  
 
     let token = bearerToken.split(" ")[1];
 
@@ -24,7 +24,9 @@ const authenticate = async function (req, res) {
             : "Invalid token";
         return res.status(401).send({ status: false, message: message });
       }
+
       req.decodedToken = decodedToken;
+      console.log("decoded", decodedToken)
       next();
     });
   } catch (error) {
@@ -33,7 +35,7 @@ const authenticate = async function (req, res) {
 };
 
 //authorisation
-const authorise = async function (req, res) {
+const authorise = async function (req, res,next) {
   try {
     let userId = req.params.userId;
     let allowedUser = req.decodedToken;
