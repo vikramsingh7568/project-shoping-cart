@@ -220,6 +220,9 @@ const loginUser = async function (req, res) {
     if (!email) {
       return res.status(400).send({ status: false, msg: "Please Enter email" });
     }
+    if(!isValidEmail(email)){
+        return res.status(400).send({status:false,message:"Email is Invalid"})
+    }
     email.toLowerCase();
     if (!password) {
       return res
