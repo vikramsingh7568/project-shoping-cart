@@ -1,11 +1,13 @@
 const jwt = require("jsonwebtoken");
 const { isValidId } = require("../validators/validation");
-const UserModel = require("../models/UserModel");
+const mongoose = require("mongoose")
+const userModel = require("../models/UserModel");
 
 // authenication
 const authenticate = async function (req, res) {
   try {
-    let bearerToken = req.headers["authorisation"];
+    let bearerToken = req.headers
+    console.log(bearerToken)
 
     if (!bearerToken)
       return res
@@ -14,7 +16,7 @@ const authenticate = async function (req, res) {
 
     let token = bearerToken.split(" ")[1];
 
-    jwt.verify(token, secretkey, function (error, decodedToken) {
+    jwt.verify(token, "FunctionUp-Group-55-aorijhg@#", function (error, decodedToken) {
       if (error) {
         let message =
           error.message == "jwt expired"
@@ -39,7 +41,7 @@ const authorise = async function (req, res) {
     if (!isValidId(userId))
       return res.status(400).send({ status: false, message: "Invalid UserId" });
 
-    let user = await UserModel.findById(userId);
+    let user = await userModel.findById(userId);
     if (!user)
       return res
         .status(404)

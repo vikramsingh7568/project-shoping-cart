@@ -244,7 +244,7 @@ const loginUser = async function (req, res) {
         "FunctionUp-Group-55-aorijhg@#",
         { expiresIn: "2hr" }
       );
-      res.header({ authorisation: token });
+      res.authorisation({ BearerToken: token });
       return res.status(200).send({
         status: true,
         msg: "User LoggedIn Succesfully",
@@ -274,7 +274,7 @@ const userDetails = async function (req, res) {
         .status(403)
         .send({ status: false, message: "Unauthorised access" });
 
-    let userdetails = await UserModel.findById({ _id: userId });
+    let userdetails = await userModel.findById({ _id: userId });
 
     if (!userdetails)
       return res
