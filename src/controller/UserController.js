@@ -8,7 +8,8 @@ const {
   isValidEmail,
   isValidPwd,
   isValidPincode,
-  isValidId
+  isValidId,
+  isValidBody
 } = require("../validators/validation");
 const { uploadFile } = require("../validators/aws");
 
@@ -205,7 +206,9 @@ const createUser = async (req, res) => {
   }
 };
 
+
 //---------------------LOGIN-USER-FUNCTION------------------------------//
+
 
 const loginUser = async function (req, res) {
   try {
@@ -261,6 +264,7 @@ const loginUser = async function (req, res) {
   }
 };
 
+// --------------------------------- userDetails --------------------------------------------------------------
 const userDetails = async function (req, res) {
   try {
     let userId = req.params.userId;
@@ -293,4 +297,181 @@ const userDetails = async function (req, res) {
   }
 };
 
-module.exports = { createUser, loginUser, userDetails };
+
+
+
+// -- ------------------------------------Update user details ------------------------------------------
+
+
+const updateUser =  async function(req,res){
+    try {
+      const data = req.body;
+      const userId = req.params.userId;
+      const files = req.files;
+      const update = {};
+  
+      const { fname, lname, email, phone, password, address } = data;
+  
+      if (isValidBody(data)) {
+        return res.status(400).send({
+          status: false,
+          message: "Please provide data in the request body!",
+        });
+      }
+  
+      if (fname) {
+        if (!isValid(fname)) {
+          return res
+            .status(400)
+            .send({ status: false, message: "fname is invalid" });
+        }
+        update["fname"] = fname;
+      }
+  
+      if (lname) {
+        if (isValid(lname)) {
+          return res
+            .status(400)
+            .send({ status: false, message: "lname is invalid" });
+        }
+        update["lname"] = lname;
+      }
+  
+      if (email) {
+        if (!isValidEmail(email)) {
+          return res
+            .status(400)
+            .send({ status: false, message: "Email is invalid!" });
+        }
+  
+        let userEmail = await userModel.findOne({ email: email });
+        if (userEmail) {
+          return res.status(409).send({
+            status: false,
+            message:
+              "This email address already exists, please enter a unique email address!",
+          });
+        }
+        update["email"] = email;
+      }
+  
+      if (phone) {
+        if (!isValidNumber(phone)) {
+          return res
+            .status(400)
+            .send({ status: false, message: "Phone is invalid" });
+        }
+  
+        let userNumber = await userModel.findOne({ phone: phone });
+        if (userNumber)
+          return res.status(409).send({
+            status: false,
+            message:
+              "This phone number already exists, please enter a unique phone number!",
+          });
+        update["phone"] = phone;
+      }
+  
+      if (password) {
+        if (!isValidPwd(password)) {
+          return res.status(400).send({
+            status: false,
+            message:
+              "Password should be strong, please use one number, one upper case, one lower case and one special character and characters should be between 8 to 15 only!",
+          });
+        }
+  
+        const salt = await bcrypt.genSalt(10);
+        data.password = await bcrypt.hash(data.password, salt);
+  
+        update["password"] = encryptPassword;
+      }
+  
+      if (address) {
+        const { shipping, billing } = address;
+  
+        if (shipping) {
+          const { street, city, pincode } = shipping;
+  
+          if (street) {
+            if (!isValid(address.shipping.street)) {
+              return res
+                .status(400)
+                .send({ status: false, message: "Invalid shipping street!" });
+            }
+            update["address.shipping.street"] = street;
+          }
+  
+          if (city) {
+            if (!isValid(address.shipping.city)) {
+              return res
+                .status(400)
+                .send({ status: false, message: "Invalid shipping city!" });
+            }
+            update["address.shipping.city"] = city;
+          }
+  
+          if (pincode) {
+            if (!isValidPincode(address.shipping.pincode)) {
+              return res
+                .status(400)
+                .send({ status: false, message: "Invalid shipping pincode!" });
+            }
+            update["address.shipping.pincode"] = pincode;
+          }
+        }
+  
+        if (billing) {
+          const { street, city, pincode } = billing;
+  
+          if (street) {
+            if (!isValid(address.billing.street)) {
+              return res
+                .status(400)
+                .send({ status: false, message: "Invalid billing street!" });
+            }
+            update["address.billing.street"] = street;
+          }
+  
+          if (city) {
+            if (!isValid(address.billing.city)) {
+              return res
+                .status(400)
+                .send({ status: false, message: "Invalid billing city!" });
+            }
+            update["address.billing.city"] = city;
+          }
+  if (pincode) {
+            if (!isValidPincode(address.billing.pincode)) {
+              return res
+                .status(400)
+                .send({ status: false, message: "Invalid billing pincode!" });
+            }
+            update["address.billing.pincode"] = pincode;
+          }
+        }
+      }
+  
+      if (files && files.length > 0) {
+        let uploadFile = await aws.uploadFile(files[0]);
+  
+        data.profileImage = uploadFile;
+      }
+      update["profileImage"] = uploadFile;
+  
+      const updateUser = await userModel.findOneAndUpdate(
+        { _id: userId },
+        update,
+        { new: true }
+      );
+      return res.status(200).send({
+        status: true,
+        message: "user successfully created",
+        data: updateUser,
+      });
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  };
+  
+module.exports = { createUser, loginUser, userDetails, updateUser };
