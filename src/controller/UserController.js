@@ -1,7 +1,12 @@
 const User = require("../models/userModel");
+<<<<<<< HEAD
 
 const bcrypt = require("bcrypt");
 //const jwt = require('jsonwebtoken')
+=======
+const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken')
+>>>>>>> c0891d6ce58b27913ec932a1e91d3356a8996317
 const {
   isValid,
   isValidPhone,
