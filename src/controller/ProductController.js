@@ -5,6 +5,7 @@ const {
   isValid,
   isValidNumber,
   isValidPrice,
+  isValidAvailableSizes,
 } = require("../validators/validation");
 
 const createProduct = async function (req, res) {
@@ -71,7 +72,7 @@ const createProduct = async function (req, res) {
     if (currencyId != "INR") {
       return res
         .status(400)
-        .send({ status: false, Message: "currencyId should be INR" });
+        .send({ status: false, message: "currencyId should be INR" });
     }
 
     // currencyFormat validation
@@ -83,21 +84,19 @@ const createProduct = async function (req, res) {
     if (currencyFormat != "₹")
       return res
         .status(400)
-        .send({ status: false, Message: "cureenccy format shouls be ₹ " });
+        .send({ status: false, message: "cureenccy format shouls be ₹ " });
 
-    let arr = availableSizes.split(",");
-    // console.log(arr)
-
-    // console.log(typeof availableSizes);
-    for (let i = 0; i < Object.keys(arr).length; i++) {
-      let size = arr[i];
-      console.log(size);
-      if (!Object.values(availableSizes).includes(size))
+    // availableSizes validation
+    if (availableSizes || availableSizes == "") {
+      availableSizes = availableSizes.split(",").map((x) => x.trim());
+      data.availableSizes = availableSizes;
+      if (!isValidAvailableSizes(availableSizes))
         return res.status(400).send({
           status: false,
-          message: `availableSizes are ["S", "XS", "M", "X", "L", "XXL", "XL"] only!`,
+          message: `availableSizes should be S, XS, M, X, L, XXL, XL only`
         });
     }
+
 
     // style validation
     if (style) {
@@ -123,7 +122,7 @@ const createProduct = async function (req, res) {
     let files = req.files;
     if (!(files && files.length)) {
       return res.status(400).send({
-        status: "false",
+        status: false,
         message: "Found Error in Uploading files...",
       });
     }

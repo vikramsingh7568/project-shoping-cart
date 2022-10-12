@@ -53,6 +53,13 @@ const isValidPrice = function(price) {
   return regexForPrice.test(price)
 };
 
+const isValidAvailableSizes = (availablesizes) => {
+  for( i=0 ;i<availablesizes.length; i++){
+    if(!["S", "XS","M","X", "L","XXL", "XL"].includes(availablesizes[i])) return false
+  }
+  return true
+};        
+
 
 module.exports = {
   isValid,
@@ -63,5 +70,6 @@ module.exports = {
   isValidPincode,
   isValidId,
   isValidNumber,
-  isValidPrice
+  isValidPrice,
+  isValidAvailableSizes
 };
