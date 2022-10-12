@@ -16,10 +16,8 @@ const { uploadFile } = require("../validators/aws");
 const createUser = async (req, res) => {
   try {
     let data = req.body;
-    let address = JSON.parse(req.body.address);
-    let { fname, lname, email, phone, password } = data;
-    data.address = address;
-
+    let { fname, lname, email, phone, password , address } = data;
+   
     if (isValid(fname))
       return res.status(400).send({
         status: false,
@@ -312,24 +310,42 @@ const updateUser =  async function(req,res){
   
       const { fname, lname, email, phone, password, address } = data;
   
-      if (isValidBody(data)) {
+      if (!isValidBody(data) && !files) {
         return res.status(400).send({
           status: false,
           message: "Please provide data in the request body!",
         });
       }
   
+      const keys = [
+        "fname",
+        "lname",
+        "email",
+        "phone",
+        "password",
+        "address",
+        "files",
+      ];
+  
+      if (!Object.keys(req.body).every((elem) => keys.includes(elem))) {
+        return res
+          .status(400)
+          .send({ status: false, message: "wrong Parameters" });
+      }
+  
+  
       if (fname) {
-        if (!isValid(fname)) {
+        if (isValid(fname) || !isValidName(fname)) {
           return res
             .status(400)
             .send({ status: false, message: "fname is invalid" });
         }
+  
         update["fname"] = fname;
       }
   
       if (lname) {
-        if (isValid(lname)) {
+        if (isValid(lname) || !isValidName(lname)) {
           return res
             .status(400)
             .send({ status: false, message: "lname is invalid" });
@@ -373,18 +389,16 @@ const updateUser =  async function(req,res){
       }
   
       if (password) {
-        if (!isValidPwd(password)) {
+        if (isValidPwd(password)) {
           return res.status(400).send({
             status: false,
             message:
               "Password should be strong, please use one number, one upper case, one lower case and one special character and characters should be between 8 to 15 only!",
           });
         }
-  
-        const salt = await bcrypt.genSalt(10);
-        data.password = await bcrypt.hash(data.password, salt);
-  
-        update["password"] = encryptPassword;
+ 
+       update.password = await bcrypt.hash(password, 10);
+
       }
   
       if (address) {
@@ -394,7 +408,7 @@ const updateUser =  async function(req,res){
           const { street, city, pincode } = shipping;
   
           if (street) {
-            if (!isValid(address.shipping.street)) {
+            if (isValid(address.shipping.street)) {
               return res
                 .status(400)
                 .send({ status: false, message: "Invalid shipping street!" });
@@ -403,7 +417,7 @@ const updateUser =  async function(req,res){
           }
   
           if (city) {
-            if (!isValid(address.shipping.city)) {
+            if (isValid(address.shipping.city)) {
               return res
                 .status(400)
                 .send({ status: false, message: "Invalid shipping city!" });
@@ -425,7 +439,7 @@ const updateUser =  async function(req,res){
           const { street, city, pincode } = billing;
   
           if (street) {
-            if (!isValid(address.billing.street)) {
+            if (isValid(address.billing.street)) {
               return res
                 .status(400)
                 .send({ status: false, message: "Invalid billing street!" });
@@ -433,15 +447,17 @@ const updateUser =  async function(req,res){
             update["address.billing.street"] = street;
           }
   
-          if (city) {
-            if (!isValid(address.billing.city)) {
+  
+  if (city) {
+            if (isValid(address.billing.city)) {
               return res
                 .status(400)
                 .send({ status: false, message: "Invalid billing city!" });
             }
             update["address.billing.city"] = city;
           }
-  if (pincode) {
+  
+          if (pincode) {
             if (!isValidPincode(address.billing.pincode)) {
               return res
                 .status(400)
@@ -453,11 +469,10 @@ const updateUser =  async function(req,res){
       }
   
       if (files && files.length > 0) {
-        let uploadFile = await aws.uploadFile(files[0]);
-  
-        data.profileImage = uploadFile;
+        let uploadedFileURL = await uploadFile(files[0]);  
+        update["profileImage"] = uploadedFileURL;
       }
-      update["profileImage"] = uploadFile;
+
   
       const updateUser = await userModel.findOneAndUpdate(
         { _id: userId },
@@ -466,12 +481,13 @@ const updateUser =  async function(req,res){
       );
       return res.status(200).send({
         status: true,
-        message: "user successfully created",
+        message: "user profile successfully updated",
         data: updateUser,
       });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
   };
+  
   
 module.exports = { createUser, loginUser, userDetails, updateUser };
