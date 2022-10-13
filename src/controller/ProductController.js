@@ -3,6 +3,7 @@ const { uploadFile } = require("../validators/aws");
 const productModel = require("../models/productModel");
 const {
   isValid,
+  isValidString,
   isValidNumber,
   isValidPrice,
   isValidAvailableSizes,
@@ -93,10 +94,9 @@ const createProduct = async function (req, res) {
       if (!isValidAvailableSizes(availableSizes))
         return res.status(400).send({
           status: false,
-          message: `availableSizes should be S, XS, M, X, L, XXL, XL only`
+          message: `availableSizes should be S, XS, M, X, L, XXL, XL only`,
         });
     }
-
 
     // style validation
     if (style) {
@@ -140,7 +140,128 @@ const createProduct = async function (req, res) {
   }
 };
 
-const getByFilter = async function (req, res) {};
+
+
+//===========get product details by queries==============================//
+
+const getByFilter = async (req, res) => {
+  try {
+    let data = req.query;
+    let conditions = { isDeleted: false };
+
+    //checking for any queries
+    if (isValid(data)) {
+      //getting the products
+      let getProducts = await productModel.find(conditions).sort({ price: 1 });
+      if (getProducts.length == 0)
+        return res
+          .status(404)
+          .send({ status: false, message: "No products found" });
+
+      return res
+        .status(200)
+        .send({
+          status: true,
+          count: getProducts.length,
+          message: "Success",
+          data: getProducts,
+        });
+    }
+
+    //validating the filter - SIZE
+    if (data.size || typeof data.size == "string") {
+      data.size = data.size.toUpperCase();
+      if (isValid(data.size))
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "Enter a valid value for size and remove spaces",
+          });
+
+      conditions.availableSizes = {};
+      conditions.availableSizes["$in"] = [data.size];
+    }
+
+    //validating the filter - NAME
+    if (data.name || typeof data.name == "string") {
+      if (isValid(data.name))
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "Enter a valid value for product name and remove spaces",
+          });
+
+      //using $regex to match the names of products & "i" for case insensitive.
+      conditions.title = {};
+      conditions.title["$regex"] = data.name;
+      conditions.title["$options"] = "i";
+    }
+
+    //validating the filter - PRICEGREATERTHAN
+    if (data.priceGreaterThan || typeof data.priceGreaterThan == "string") {
+      if (!isValidString(data.priceGreaterThan))
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "Price of product should be in numbers",
+          });
+
+      data.priceGreaterThan = JSON.parse(data.priceGreaterThan);
+      if (isValidNumber(data.priceGreaterThan))
+        return res
+          .status(400)
+          .send({ status: false, message: "Price of product should be valid" });
+
+      if (!conditions.price) {
+        conditions.price = {};
+      }
+      conditions.price["$gte"] = data.priceGreaterThan;
+    }
+
+    //validating the filter - PRICELESSTHAN
+    if (data.priceLessThan || typeof data.priceLessThan == "string") {
+      if (!isValidString(data.priceLessThan))
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "Price of product should be in numbers",
+          });
+
+      data.priceLessThan = JSON.parse(data.priceLessThan);
+      if (isValidNumber(data.priceLessThan))
+        return res
+          .status(400)
+          .send({ status: false, message: "Price of product should be valid" });
+
+      if (!conditions.price) {
+        conditions.price = {};
+      }
+      conditions.price["$lte"] = data.priceLessThan;
+    }
+
+    //get the products with the condition provided
+    let getFilterData = await productModel.find(conditions).sort({ price: 1 });
+    if (getFilterData.length == 0)
+      return res
+        .status(404)
+        .send({ status: false, message: "No products found" });
+
+    res
+      .status(200)
+      .send({
+        status: true,
+        count: getFilterData.length,
+        message: "Success",
+        data: getFilterData,
+      });
+  } catch (err) {
+    res.status(500).send({ status: false, error: err.message });
+  }
+};
 
 const getById = async function (req, res) {};
 

@@ -13,6 +13,9 @@ const isValidId = function (id) {
   return mongoose.Types.ObjectId.isValid(id);
 };
 
+const isValidString = (String) => {
+  return /\d/.test(String)
+}
 const isValidBody = (reqBody) => {
   return Object.keys(reqBody).length == 0;
 };
@@ -64,6 +67,7 @@ const isValidAvailableSizes = (availablesizes) => {
 module.exports = {
   isValid,
   isValidBody,
+  isValidString,
   isValidPhone,
   isValidEmail,
   isValidPwd,
