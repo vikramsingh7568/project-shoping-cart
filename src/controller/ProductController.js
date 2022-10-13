@@ -169,7 +169,7 @@ const getByFilter = async (req, res) => {
     }
 
     //validating the filter - SIZE
-    if (data.size || typeof data.size == "string") {
+    if (data.size) {
       data.size = data.size.toUpperCase();
       if (isValid(data.size))
         return res
@@ -200,7 +200,7 @@ const getByFilter = async (req, res) => {
     }
 
     //validating the filter - PRICEGREATERTHAN
-    if (data.priceGreaterThan || typeof data.priceGreaterThan == "string") {
+    if (data.priceGreaterThan) {
       if (!isValidString(data.priceGreaterThan))
         return res
           .status(400)
@@ -222,7 +222,7 @@ const getByFilter = async (req, res) => {
     }
 
     //validating the filter - PRICELESSTHAN
-    if (data.priceLessThan || typeof data.priceLessThan == "string") {
+    if (data.priceLessThan ) {
       if (!isValidString(data.priceLessThan))
         return res
           .status(400)
@@ -262,6 +262,8 @@ const getByFilter = async (req, res) => {
     res.status(500).send({ status: false, error: err.message });
   }
 };
+
+
 
 const getById = async function (req, res) {};
 
