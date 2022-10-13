@@ -7,6 +7,7 @@ const {
   isValidNumber,
   isValidPrice,
   isValidAvailableSizes,
+  isValidId,
 } = require("../validators/validation");
 
 const createProduct = async function (req, res) {
@@ -117,17 +118,6 @@ const createProduct = async function (req, res) {
     }
 
     // console.log(data);
-
-    //aws s3 profileImage upload
-    let files = req.files;
-    if (!(files && files.length)) {
-      return res.status(400).send({
-        status: false,
-        message: "Found Error in Uploading files...",
-      });
-    }
-    let fileUploaded = await uploadFile(files[0]);
-    data.productImage = fileUploaded;
 
     let product = await productModel.create(data);
     return res.status(201).send({
@@ -265,7 +255,25 @@ const getByFilter = async (req, res) => {
 
 
 
-const getById = async function (req, res) {};
+const getById = async function (req,res){
+  let productId = req.params.productId
+  if(!isValidId(productId)){
+     return  res.status(400).send({status : false , message : "please enter Valid productId ! "})
+  }
+     
+   let product = await productModel.findOne({_id : productId })
+   if(product.isDeleted == true){
+     return  res.status(400).send({status : false , message : "this product is deleted "})
+   }
+ 
+   if(!product){
+    return  res.status(404).send({status : false , message : "this product id is not found in product collection "})
+  }
+
+    return res.status(200).send({status : true , data : product})
+
+}
+
 
 const updateProduct = async function (req, res) {};
 
