@@ -277,4 +277,39 @@ const getById = async function (req,res){
 
 const updateProduct = async function (req, res) {};
 
-module.exports = { createProduct, getByFilter, getById, updateProduct };
+
+
+
+
+//=======================delete product by id=============================//
+
+const deleteProduct = async function (req, res) {
+
+  try {
+    
+let id=req.params.productId
+
+if(!isValidId(id)){
+ return res.status(400).send({status:false, message:"productId is Invalid"})
+}
+
+let product= await productModel.findOne({_id:id})
+if(!product){
+ return res.status(404).send({status:false,message:"No Product found with given Product Id"})
+}
+
+if(product.isDeleted===true){
+ return  res.status(200).send({status:true,message:"Product with given Id is Already Deleted"})
+}
+
+let deleteProduct= await productModel.updateOne({_id:id},{isDeleted:true,deletedAt:Date.now()},)
+res.status(201).send({status:true,message:"Successfully deleted the product"})
+
+  } catch (error) {
+    res.status(500).send({ status: false, Error: err.message });
+  }
+};
+
+
+
+module.exports = { createProduct, getByFilter, getById, updateProduct, deleteProduct};
