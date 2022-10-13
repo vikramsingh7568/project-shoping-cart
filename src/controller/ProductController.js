@@ -1,31 +1,157 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const { uploadFile } = require("../validators/aws");
+const productModel = require("../models/productModel");
+const {
+  isValid,
+  isValidNumber,
+  isValidPrice,
+  isValidAvailableSizes,
+  isValidId,
+} = require("../validators/validation");
+
+const createProduct = async function (req, res) {
+  try {
+    let data = req.body;
+
+    let {
+      title,
+      description,
+      price,
+      isFreeShipping,
+      currencyId,
+      currencyFormat,
+      style,
+      availableSizes,
+      installments,
+    } = data;
+
+    // tilte validation
+    if (isValid(title))
+      return res.status(400).send({
+        status: false,
+        message: "Product title is required and should not be an empty string",
+      });
+
+    let uniqueTitle = await productModel.findOne({ title: title });
+    if (uniqueTitle)
+      return res.status(400).send({
+        status: false,
+        message: `Title ${title}is already registerd`,
+      });
+
+    // description validation
+    if (isValid(description))
+      return res.status(400).send({
+        status: false,
+        message:
+          "Product description is required and should not be an empty string",
+      });
+
+    // price validation
+    if (isValidNumber(price) || !isValidPrice(price))
+      return res.status(400).send({
+        status: false,
+        message: "Product price is required and it should be a number",
+      });
+
+    // isFreeShipping validation
+    if (isFreeShipping) {
+      if (["true", "false"].includes(isFreeShipping) === false) {
+        return res
+          .status(400)
+          .send({ status: false, message: "isFreeShipping should be boolean" });
+      }
+    }
+
+    // currencyId validation
+    if (isValid(currencyId))
+      return res.status(400).send({
+        status: false,
+        message: "currencyId is required and should not be an empty string",
+      });
+
+    if (currencyId != "INR") {
+      return res
+        .status(400)
+        .send({ status: false, message: "currencyId should be INR" });
+    }
+
+    // currencyFormat validation
+    if (isValid(currencyFormat))
+      return res.status(400).send({
+        status: false,
+        message: "currencyFormat is required and should not be an empty string",
+      });
+    if (currencyFormat != "₹")
+      return res
+        .status(400)
+        .send({ status: false, message: "cureenccy format shouls be ₹ " });
+
+    // availableSizes validation
+    if (availableSizes || availableSizes == "") {
+      availableSizes = availableSizes.split(",").map((x) => x.trim());
+      data.availableSizes = availableSizes;
+      if (!isValidAvailableSizes(availableSizes))
+        return res.status(400).send({
+          status: false,
+          message: `availableSizes should be S, XS, M, X, L, XXL, XL only`
+        });
+    }
 
 
-const createProduct = async function (req,res){
+    // style validation
+    if (style) {
+      if (isValid(style))
+        return res.status(400).send({
+          status: false,
+          message: "style should not be an empty string",
+        });
+    }
 
-}
+    // installments validation
+    if (installments) {
+      if (isValidNumber(installments) || !isValidPrice(installments))
+        return res.status(400).send({
+          status: false,
+          message: "Installments should be a Number only",
+        });
+    }
 
-const getByFilter = async function (req,res){
-    
-}
+    // console.log(data);
+
+    let product = await productModel.create(data);
+    return res.status(201).send({
+      status: true,
+      message: "Product Created successfully",
+      data: product,
+    });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+// -------------------------betbyid ===-----------------
 
 const getById = async function (req,res){
-    let productId = req.params.productId
-    if(isValidId(productId)){
-       return  res.status(400).send({status : false , message : "please enter Valid productId ! "})
-    }
-       
-     let product = await productModel.findOne({_id : productId , isDeleted : false})
-     if(!product){
-       return  res.status(400).send({status : false , message : "this product is deleted "})
-     }
+  let productId = req.params.productId
+  if(!isValidId(productId)){
+     return  res.status(400).send({status : false , message : "please enter Valid productId ! "})
+  }
+     
+   let product = await productModel.findOne({_id : productId })
+   if(product.isDeleted == true){
+     return  res.status(400).send({status : false , message : "this product is deleted "})
+   }
+ 
+   if(!product){
+    return  res.status(404).send({status : false , message : "this product id is not found in product collection "})
+  }
 
-      return res.status(200).send({status : true , data : product})
+    return res.status(200).send({status : true , data : product})
 
 }
+const getByFilter = async function (req, res) {};
 
-const updateProduct = async function (req,res){
-    
-}
+const updateProduct = async function (req, res) {};
 
-module.exports = {createProduct, getByFilter, getById, updateProduct}
+module.exports = { createProduct, getByFilter, getById, updateProduct };
