@@ -27,7 +27,7 @@ const createProduct = async function (req, res) {
     } = data;
 
     // tilte validation
-    if (isValid(title))
+    if (!isValid(title))
       return res.status(400).send({
         status: false,
         message: "Product title is required and should not be an empty string",
@@ -41,7 +41,7 @@ const createProduct = async function (req, res) {
       });
 
     // description validation
-    if (isValid(description))
+    if (!isValid(description))
       return res.status(400).send({
         status: false,
         message:
@@ -65,7 +65,7 @@ const createProduct = async function (req, res) {
     }
 
     // currencyId validation
-    if (isValid(currencyId))
+    if (!isValid(currencyId))
       return res.status(400).send({
         status: false,
         message: "currencyId is required and should not be an empty string",
@@ -78,7 +78,7 @@ const createProduct = async function (req, res) {
     }
 
     // currencyFormat validation
-    if (isValid(currencyFormat))
+    if (!isValid(currencyFormat))
       return res.status(400).send({
         status: false,
         message: "currencyFormat is required and should not be an empty string",
@@ -101,7 +101,7 @@ const createProduct = async function (req, res) {
 
     // style validation
     if (style) {
-      if (isValid(style))
+      if (!isValid(style))
         return res.status(400).send({
           status: false,
           message: "style should not be an empty string",
@@ -118,6 +118,17 @@ const createProduct = async function (req, res) {
     }
 
     // console.log(data);
+//aws s3 profileImage upload
+let files = req.files;
+if (!(files && files.length)) {
+  return res.status(400).send({
+    status: false,
+    message: "Found Error in Uploading files...",
+  });
+}
+let fileUploaded = await uploadFile(files[0]);
+data.productImage = fileUploaded;
+
 
     let product = await productModel.create(data);
     return res.status(201).send({
@@ -239,6 +250,9 @@ const getByFilter = async (req, res) => {
   }
 };
 
+/////////---------------------Get By Id----------------//////////
+
+
 const getById = async function (req, res) {
   let productId = req.params.productId;
   if (!isValidId(productId)) {
@@ -265,6 +279,7 @@ const getById = async function (req, res) {
 
   return res.status(200).send({ status: true, data: product });
 };
+///////////---------------------Update Product-----------------////////
 
 const updateProduct = async function (req, res) {
   try {
@@ -336,10 +351,14 @@ const updateProduct = async function (req, res) {
 
 
 // if request body has key name "isFreeShipping" then after validating its value, same is added to updates object
+
+
 if (isFreeShipping) {
-    if (true|| false === false) {
-        return res.status(400).send({ status: false, message: "isFreeShipping should be boolean" });
-    }
+  if (["true", "false"].includes(isFreeShipping) === false) {
+    return res
+      .status(400)
+      .send({ status: false, message: "isFreeShipping should be boolean" });
+  }
     updates["$set"]["isFreeShipping"] = isFreeShipping;
 }
 
@@ -371,19 +390,21 @@ if (availableSizes) {
                 continue;
             }
         }
+         
     } else {
         return res.status(400).send({ status: false, message: `avilablesize is ["S", "XS", "M", "X", "L", "XXL", "XL"] select size from avilablesize` });
     }
 }
-updates["$set"]["availableSizes"] = availableSizes;
 
-//const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
-
-//return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
-
-
-
-// if request body has key name "installments" then after validating its value, same is added to updates object
+let availableArray = ProductInformation.availableSizes
+//console.log(availableArray)
+for(let i=0;i<availableArray.length;i++){
+  if(availableSizes==availableArray[i]){
+    return res.status(409).send({status:false,message:"This Size is allready Available"})
+  }
+}
+availableArray.push(availableSizes)
+updates.availableSizes = availableArray
 if (installments) {
     if (!isValid(installments)) {
         return res.status(400).send({ status: false, message: "invalid installments" });
@@ -391,24 +412,22 @@ if (installments) {
     updates["$set"]["installments"] = Number(installments);
 }
 
-//const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
-
-//return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
 
 //     // if request body has key name "image" then after validating its value, same is added to updates object
-// if (typeof image !== undefined) {
-//     if (image) {
-//         if (!isValidImageType(image)) {
-//             return res.status(400).send({ status: false, message: "Only images can be uploaded (jpeg/jpg/png)" });
-//         }
-//         const productImageUrl = await uploadFile(image[0]);
-//         updates["$set"]["productImage"] = productImageUrl;
-//     }
-// }
 
-// const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+let imageone = req.files;
+if (!(imageone && imageone.length)) {
+  return res.status(400).send({
+    status: false,
+    message: "Found Error in Uploading files...",
+  });
+}
+let fileUploaded = await uploadFile(imageone[0]);
+updates.productImage = fileUploaded;
 
-// return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+
+
 
 
 if (Object.keys(updates["$set"]).length === 0) {
