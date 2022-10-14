@@ -266,7 +266,164 @@ const getById = async function (req, res) {
   return res.status(200).send({ status: true, data: product });
 };
 
-const updateProduct = async function (req, res) {};
+const updateProduct = async function (req, res) {
+  try {
+    let requestData = req.body
+    let productId=req.params.product_id
+    if (Object.keys(req.body).length == 0)
+        return res.status(400).send({ status: false, message: "Please Enter Product Details For Updating" })
+
+    if (!productId) {
+        return res.status(400).send({ status: false, message: "Productid must be present" })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).send({ status: false, message: `this  Product Id is not a valid Id` })
+    }
+    const {title,description,price,isFreeShipping,style,availableSizes,installments} = requestData;
+    // creating an empty object 
+    const updates = { $set: {} };
+   
+  const ProductInformation = await productModel.findOne({_id:productId})
+  //console.log(ProductInformation)
+  console.log(title)
+//return res.send({status:false,message:ProductInformation})
+  if (!ProductInformation) {
+    return res.status(404).send({ status: false, msg: "no Product found with this ProductId" })
+}
+////------------------------------////---------------------------////-----------------------////
+   if (title) {
+    if (!isValid(title)) {
+        return res.status(400).send({ status: false, message: "Invalid title" });
+    }
+    const notUniqueTitle = await productModel.findOne({ title: title, });
+    //console.log(notUniqueTitle)
+    if (notUniqueTitle) {
+        return res.status(400).send({ status: false, message: "Product title already exist" });
+    }
+  
+    updates["$set"]["title"] = title.trim();
+     console.log(updates)
+}
+
+
+// if request body has key name "description" then after validating its value, same is added to updates object
+ if (description) {
+    if (!isValid(description)) {
+        return res.status(400).send({ status: false, message: "Invalid description" });
+    }
+    
+    updates["$set"]["description"] = description.trim();
+}
+
+// const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+// return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+
+ // if request body has key name "price" then after validating its value, same is added to updates object
+ if(price){   
+ if (!isValidPrice(price)) {
+        return res.status(400).send({ status: false, message: "Invalid price" });
+    }
+
+    updates["$set"]["price"] = price;
+}
+
+//const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+//return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+
+// if request body has key name "isFreeShipping" then after validating its value, same is added to updates object
+if (isFreeShipping) {
+    if (true|| false === false) {
+        return res.status(400).send({ status: false, message: "isFreeShipping should be boolean" });
+    }
+    updates["$set"]["isFreeShipping"] = isFreeShipping;
+}
+
+// const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+// return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+
+//---- if request body has key name "style" then after validating its value, same is added to updates object
+if (style) {
+    if (!isValid(style)) {
+        return res.status(400).send({ status: false, message: "Invalid style" });
+    }
+    updates["$set"]["style"] = style;
+}
+
+//const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+//return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+if (availableSizes) {
+    if (typeof (availableSizes == "string")) {
+        if (!isValidAvailableSizes(availableSizes)) {
+            return res.status(400).send({ status: false, message: "Invalid format of availableSizes" });
+        }
+        let availableSize = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+        for (let i = 0; i < availableSize.length; i++) {
+            if (availableSizes == availableSize[i]) {
+                continue;
+            }
+        }
+    } else {
+        return res.status(400).send({ status: false, message: `avilablesize is ["S", "XS", "M", "X", "L", "XXL", "XL"] select size from avilablesize` });
+    }
+}
+updates["$set"]["availableSizes"] = availableSizes;
+
+//const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+//return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+
+
+// if request body has key name "installments" then after validating its value, same is added to updates object
+if (installments) {
+    if (!isValid(installments)) {
+        return res.status(400).send({ status: false, message: "invalid installments" });
+    }
+    updates["$set"]["installments"] = Number(installments);
+}
+
+//const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+//return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+//     // if request body has key name "image" then after validating its value, same is added to updates object
+// if (typeof image !== undefined) {
+//     if (image) {
+//         if (!isValidImageType(image)) {
+//             return res.status(400).send({ status: false, message: "Only images can be uploaded (jpeg/jpg/png)" });
+//         }
+//         const productImageUrl = await uploadFile(image[0]);
+//         updates["$set"]["productImage"] = productImageUrl;
+//     }
+// }
+
+// const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+// return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+
+if (Object.keys(updates["$set"]).length === 0) {
+    return res.json("nothing is updated");
+}
+//------------ updating product data of given ID by passing updates object----------//
+const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
+
+return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
+
+} catch (error) {
+    return res.status(400).send({status:false,message:error})
+    
+}
+};
 
 //=======================delete product by id=============================//
 
