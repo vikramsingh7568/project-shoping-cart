@@ -38,7 +38,8 @@ const authenticate = async function (req, res,next) {
 const authorise = async function (req, res,next) {
   try {
     let userId = req.params.userId;
-    let allowedUser = req.decodedToken;
+    let allowedUser = req.decodedToken.id;
+    console.log(allowedUser)
 
     if (!isValidId(userId))
       return res.status(400).send({ status: false, message: "Invalid UserId" });
@@ -48,6 +49,7 @@ const authorise = async function (req, res,next) {
       return res
         .status(404)
         .send({ status: false, message: "You are not registered" });
+
 
     if (userId != allowedUser)
       return res

@@ -8,7 +8,7 @@ const {authorise, authenticate}= require("../middlewares/auth")
 router.post("/register",createUser)
 router.post("/login",loginUser)
 router.get("/user/:userId/profile",authenticate, userDetails)
-router.put("/user/:userId/profile",updateUser )
+router.put("/user/:userId/profile",authenticate, authorise, updateUser )
 
 router.post("/products",createProduct)
 router.get("/products", getByFilter)

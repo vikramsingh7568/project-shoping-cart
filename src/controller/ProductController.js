@@ -90,7 +90,7 @@ const createProduct = async function (req, res) {
 
     // availableSizes validation
     if (availableSizes || availableSizes == "") {
-      availableSizes = availableSizes.split(",").map((x) => x.trim());
+      availableSizes = availableSizes.toUpperCase().split(",").map((x) => x.trim());
       data.availableSizes = availableSizes;
       if (!isValidAvailableSizes(availableSizes))
         return res.status(400).send({
@@ -117,7 +117,6 @@ const createProduct = async function (req, res) {
         });
     }
 
-    // console.log(data);
 //aws s3 profileImage upload
 let files = req.files;
 if (!(files && files.length)) {
@@ -168,7 +167,7 @@ const getByFilter = async (req, res) => {
     //validating the filter - SIZE
     if (data.size) {
       data.size = data.size.toUpperCase();
-      if (isValid(data.size))
+      if (!isValid(data.size))
         return res.status(400).send({
           status: false,
           message: "Enter a valid value for size and remove spaces",
@@ -262,12 +261,6 @@ const getById = async function (req, res) {
   }
 
   let product = await productModel.findOne({ _id: productId });
-  if (product.isDeleted == true) {
-    return res
-      .status(400)
-      .send({ status: false, message: "this product is deleted " });
-  }
-
   if (!product) {
     return res
       .status(404)
@@ -276,10 +269,15 @@ const getById = async function (req, res) {
         message: "this product id is not found in product collection ",
       });
   }
+  if (product.isDeleted == true) {
+    return res
+      .status(400)
+      .send({ status: false, message: "this product is deleted " });
+  }
 
   return res.status(200).send({ status: true, data: product });
 };
-///////////---------------------Update Product-----------------////////
+///////////---------------------Update Product-----------------///////////
 
 const updateProduct = async function (req, res) {
   try {
@@ -300,9 +298,6 @@ const updateProduct = async function (req, res) {
     const updates = { $set: {} };
    
   const ProductInformation = await productModel.findOne({_id:productId})
-  //console.log(ProductInformation)
-  console.log(title)
-//return res.send({status:false,message:ProductInformation})
   if (!ProductInformation) {
     return res.status(404).send({ status: false, msg: "no Product found with this ProductId" })
 }
@@ -312,7 +307,6 @@ const updateProduct = async function (req, res) {
         return res.status(400).send({ status: false, message: "Invalid title" });
     }
     const notUniqueTitle = await productModel.findOne({ title: title, });
-    //console.log(notUniqueTitle)
     if (notUniqueTitle) {
         return res.status(400).send({ status: false, message: "Product title already exist" });
     }
@@ -397,7 +391,6 @@ if (availableSizes) {
 }
 
 let availableArray = ProductInformation.availableSizes
-//console.log(availableArray)
 for(let i=0;i<availableArray.length;i++){
   if(availableSizes==availableArray[i]){
     return res.status(409).send({status:false,message:"This Size is allready Available"})
@@ -412,8 +405,7 @@ if (installments) {
     updates["$set"]["installments"] = Number(installments);
 }
 
-
-//     // if request body has key name "image" then after validating its value, same is added to updates object
+ // if request body has key name "image" then after validating its value, same is added to updates object
 
 let imageone = req.files;
 if (!(imageone && imageone.length)) {
@@ -424,9 +416,6 @@ if (!(imageone && imageone.length)) {
 }
 let fileUploaded = await uploadFile(imageone[0]);
 updates.productImage = fileUploaded;
-
-
-
 
 
 

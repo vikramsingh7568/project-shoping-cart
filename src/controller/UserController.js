@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const {
   isValid,
+  isValidName,
   isValidPhone,
   isValidEmail,
   isValidPwd,
@@ -16,15 +17,15 @@ const { uploadFile } = require("../validators/aws");
 const createUser = async (req, res) => {
   try {
     let data = req.body;
-    let { fname, lname, email, phone, password , address } = data;
+    let { fname, lname, email, phone, password, address } = data;
    
-    if (isValid(fname))
+    if (!isValid(fname) || !isValidName(fname))
       return res.status(400).send({
         status: false,
         message: "First name is required and should not be an empty string",
       });
 
-    if (isValid(lname))
+    if (!isValid(lname) || !isValidName(lname))
       return res.status(400).send({
         status: false,
         message: "Last name is required and should not be an empty string",
@@ -104,14 +105,14 @@ const createUser = async (req, res) => {
           "Shipping address should be in object and must contain street, city and pincode",
       });
 
-    if (isValid(address.shipping.street))
+    if (!isValid(address.shipping.street))
       return res.status(400).send({
         status: false,
         message:
           "Street is required of shipping address and should not be empty string",
       });
 
-    if (isValid(address.shipping.city))
+    if (!isValid(address.shipping.city))
       return res.status(400).send({
         status: false,
         message:
@@ -130,14 +131,14 @@ const createUser = async (req, res) => {
           "Billing address should be in object and must contain street, city and pincode",
       });
 
-    if (isValid(address.billing.street))
+    if (!isValid(address.billing.street))
       return res.status(400).send({
         status: false,
         message:
           "Street is required of billing address and should not be empty string",
       });
 
-    if (isValid(address.billing.city))
+    if (!isValid(address.billing.city))
       return res.status(400).send({
         status: false,
         message:
@@ -183,7 +184,7 @@ const createUser = async (req, res) => {
     if (!(files && files.length)) {
       return res
         .status(400)
-        .send({ status: "false", msg: "Found Error in Uploading files..." });
+        .send({ status: "false", message: "Found Error in Uploading files..." });
     }
     let fileUploaded = await uploadFile(files[0]);
 
@@ -217,10 +218,10 @@ const loginUser = async function (req, res) {
     if (Object.keys(data).length == 0) {
       return res
         .status(400)
-        .send({ status: false, msg: "Please Enter email and Password" });
+        .send({ status: false, message: "Please Enter email and Password" });
     }
     if (!email) {
-      return res.status(400).send({ status: false, msg: "Please Enter email" });
+      return res.status(400).send({ status: false, message: "Please Enter email" });
     }
     if(!isValidEmail(email)){
         return res.status(400).send({status:false,message:"Email is Invalid"})
@@ -229,12 +230,12 @@ const loginUser = async function (req, res) {
     if (!password) {
       return res
         .status(400)
-        .send({ status: false, msg: "Please Enter password" });
+        .send({ status: false, message: "Please Enter password" });
     }
     const user = await userModel.findOne({ email: email });
 
     if (!user) {
-      return res.status(401).send({ status: false, msg: "Invalid User" });
+      return res.status(401).send({ status: false, message: "Invalid User" });
     }
     const tempPassword = user.password;
     const match = await bcrypt.compare(password, tempPassword);
@@ -248,7 +249,7 @@ const loginUser = async function (req, res) {
       res.header({ BearerToken: token });
       return res.status(200).send({
         status: true,
-        msg: "User LoggedIn Succesfully",
+        message: "User LoggedIn Succesfully",
         data: { userId: user._id, token: token },
       });
     }
@@ -258,7 +259,7 @@ const loginUser = async function (req, res) {
         .send({ status: false, message: "Password Incorrect" });
     }
   } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
+    return res.status(500).send({ status: false, message: err.message });
   }
 };
 
@@ -335,7 +336,7 @@ const updateUser =  async function(req,res){
   
   
       if (fname) {
-        if (isValid(fname) || !isValidName(fname)) {
+        if (!isValid(fname) || !isValidName(fname)) {
           return res
             .status(400)
             .send({ status: false, message: "fname is invalid" });
@@ -345,7 +346,7 @@ const updateUser =  async function(req,res){
       }
   
       if (lname) {
-        if (isValid(lname) || !isValidName(lname)) {
+        if (!isValid(lname) || !isValidName(lname)) {
           return res
             .status(400)
             .send({ status: false, message: "lname is invalid" });
@@ -485,7 +486,7 @@ const updateUser =  async function(req,res){
         data: updateUser,
       });
     } catch (error) {
-      res.status(500).send({ message: error.message });
+      res.status(500).send({status: false, message: error.message });
     }
   };
   
