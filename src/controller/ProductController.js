@@ -149,7 +149,7 @@ const getByFilter = async (req, res) => {
     let conditions = { isDeleted: false };
 
     //checking for any queries
-    if (isValid(data)) {
+    if (!isValid(data)) {
       //getting the products
       let getProducts = await productModel.find(conditions).sort({ price: 1 });
       if (getProducts.length == 0)
@@ -168,7 +168,7 @@ const getByFilter = async (req, res) => {
     //validating the filter - SIZE
     if (data.size) {
       data.size = data.size.toUpperCase();
-      if (isValid(data.size))
+      if (!isValid(data.size))
         return res.status(400).send({
           status: false,
           message: "Enter a valid value for size and remove spaces",
@@ -180,7 +180,7 @@ const getByFilter = async (req, res) => {
 
     //validating the filter - NAME
     if (data.name || typeof data.name == "string") {
-      if (isValid(data.name))
+      if (!isValid(data.name))
         return res.status(400).send({
           status: false,
           message: "Enter a valid value for product name and remove spaces",
