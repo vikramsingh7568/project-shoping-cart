@@ -12,7 +12,7 @@ const {
   isValidId,
   isValidBody
 } = require("../validators/validation");
-// let isValid = !isValid
+
 const { uploadFile } = require("../validators/aws");
 
 const createUser = async (req, res) => {
