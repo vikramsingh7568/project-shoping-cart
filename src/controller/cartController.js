@@ -37,7 +37,8 @@ const createCart = async function(req,res){
        if(product.isDeleted == true){
         return res.status(400).send({status : false , message : "this product is Deleted "})
        }
-     
+         
+            
     
        if(!cartId){
        let checking = await cartModel.findOne({userId :  UserId})
@@ -45,9 +46,18 @@ const createCart = async function(req,res){
         return res.status(409).send({status : false , message : "this user already have a cart please give cart id in request body"})
        }
     }
+
      
 if(cartId){
+
+    if(!isValidId(cartId)){
+        return res.status(400).send({status : false , message : "please provide valid Cart Id"})
+       }
+
     let cart = await cartModel.findOne({_id : cartId})
+    if(!cart){
+     return    res.status(400).send({status : true , message : 'This cart id is not available'})
+    }
      quantity = Number(quantity)
   let arr = cart.items
    
@@ -78,7 +88,7 @@ if(cartId){
        let obj = {}
        obj.userId = UserId
        obj.items = [{productId : productId,quantity: quantity}]
-       obj.totalPrice = price
+       obj.totalPrice = product.price
        obj.totalItems = obj.items.length
 
        let dataStored = await cartModel.create(obj)
