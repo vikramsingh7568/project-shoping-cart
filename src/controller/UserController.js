@@ -10,10 +10,9 @@ const {
   isValidPwd,
   isValidPincode,
   isValidId,
-  isValidBody,
-  isValid
+  isValidBody
 } = require("../validators/validation");
-let isValid = !isValid
+// let isValid = !isValid
 const { uploadFile } = require("../validators/aws");
 
 const createUser = async (req, res) => {
@@ -327,7 +326,7 @@ const updateUser =  async function(req,res){
         "phone",
         "password",
         "address",
-        "files",
+        "profileImage",
       ];
   
       if (!Object.keys(req.body).every((elem) => keys.includes(elem))) {
@@ -335,7 +334,6 @@ const updateUser =  async function(req,res){
           .status(400)
           .send({ status: false, message: "wrong Parameters" });
       }
-  
   
       if (fname) {
         if (!isValid(fname) || !isValidName(fname)) {
@@ -452,7 +450,8 @@ const updateUser =  async function(req,res){
   
   
           if (city) {
-            if (isValid(address.billing.city)) {
+            if (
+              isValid(address.billing.city)) {
               return res
                 .status(400)
                 .send({ status: false, message: "Invalid billing city!" });
@@ -474,6 +473,8 @@ const updateUser =  async function(req,res){
       if (files && files.length > 0) {
         let uploadedFileURL = await uploadFile(files[0]);  
         update["profileImage"] = uploadedFileURL;
+      }else if( Object.keys(data).includes("profileImage")) {
+        return res.status(400).send({status: false,message: "please put the profileimage"});
       }
 
   

@@ -86,7 +86,7 @@ const createProduct = async function (req, res) {
     if (currencyFormat != "₹")
       return res
         .status(400)
-        .send({ status: false, message: "cureenccy format shouls be ₹ " });
+        .send({ status: false, message: "currency format shouls be ₹ " });
 
     // availableSizes validation
     if (availableSizes || availableSizes == "") {
@@ -132,7 +132,7 @@ data.productImage = fileUploaded;
     let product = await productModel.create(data);
     return res.status(201).send({
       status: true,
-      message: "Product Created successfully",
+      message: "Success",
       data: product,
     });
   } catch (error) {
@@ -275,7 +275,7 @@ const getById = async function (req, res) {
       .send({ status: false, message: "this product is deleted " });
   }
 
-  return res.status(200).send({ status: true, data: product });
+  return res.status(200).send({ status: true, message:"Success", data: product });
 };
 ///////////---------------------Update Product-----------------///////////
 
@@ -293,7 +293,7 @@ const updateProduct = async function (req, res) {
     if (!mongoose.Types.ObjectId.isValid(productId)) {
         return res.status(400).send({ status: false, message: `this  Product Id is not a valid Id` })
     }
-    const {title,description,price,isFreeShipping,style,availableSizes,installments} = requestData;
+    const {title,description,price,isFreeShipping,style,availableSizes,installments, productImage} = requestData;
     // creating an empty object 
     const updates = { $set: {} };
    
@@ -317,6 +317,7 @@ const updateProduct = async function (req, res) {
 
 
 // if request body has key name "description" then after validating its value, same is added to updates object
+
  if (description) {
     if (!isValid(description)) {
         return res.status(400).send({ status: false, message: "Invalid description" });
@@ -388,7 +389,8 @@ if (availableSizes) {
     } else {
         return res.status(400).send({ status: false, message: `avilablesize is ["S", "XS", "M", "X", "L", "XXL", "XL"] select size from avilablesize` });
     }
-}
+// }
+console.log("hi", updates)
 
 let availableArray = ProductInformation.availableSizes
 for(let i=0;i<availableArray.length;i++){
@@ -397,7 +399,10 @@ for(let i=0;i<availableArray.length;i++){
   }
 }
 availableArray.push(availableSizes)
-updates.availableSizes = availableArray
+updates["$set"]["availableSizes"] = availableArray
+}
+
+
 if (installments) {
     if (!isValid(installments)) {
         return res.status(400).send({ status: false, message: "invalid installments" });
@@ -408,6 +413,7 @@ if (installments) {
  // if request body has key name "image" then after validating its value, same is added to updates object
 
 let imageone = req.files;
+if(productImage){
 if (!(imageone && imageone.length)) {
   return res.status(400).send({
     status: false,
@@ -416,8 +422,7 @@ if (!(imageone && imageone.length)) {
 }
 let fileUploaded = await uploadFile(imageone[0]);
 updates.productImage = fileUploaded;
-
-
+}
 
 if (Object.keys(updates["$set"]).length === 0) {
     return res.json("nothing is updated");
