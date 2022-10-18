@@ -110,7 +110,30 @@ const getCartDetails = async function(req,res)
 }
 
 const deleteCart = async function(req,res){
-    
+    try {
+        //fetch userid fron params
+        const userId = req.params.userId
+        if (!isValidId(userId)) {
+            return res.status(400).send({ status: false, msg: "invalid userId" })
+        }
+
+        const checkUser = await userModel.findOne({ _id: userId })
+        if (!checkUser) {
+            return res.satus(404).send({ status: false, msg: "User doesn't esxist" })
+
+        }
+        //fetch cart docment from db by userid
+        const checkCart = await cartModel.find({ userId: userId })
+        if (!checkCart) {
+            return res.status(404).send({ sttaus: false, msg: "cart doesn't exist" })
+        }
+        const deleteCart = await cartModel.findOneAndUpdate({ userId: userId }, { $set: { items: [], totalPrice: 0, totalItems: 0 } }, { new: true })
+        return res.status(204).send({ status: true, message: "cart deleted", data: deleteCart })
+    }
+    catch (error) {
+        console.log(error)
+        return res.status(500).send({ status: false, msg: error.message })
+    }
 }
 
 module.exports = {createCart, updateCart, getCartDetails, deleteCart}
