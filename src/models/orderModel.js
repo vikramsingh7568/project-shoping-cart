@@ -8,21 +8,21 @@ const ObjectId = mongoose.Schema.Types.ObjectId
        userId: {
            require:true,
            type:ObjectId,
-           ref:'userModel'},//userId, refs to User Model
+           ref:"User"},//userId, refs to User Model
        items: [{
        productId: {
            require:true,
            type:ObjectId,
-           ref:'productModel'},//ObjectId, refs to Product model
+           ref:"product"},//ObjectId, refs to Product model
        quantity: {type:Number, require:true, default:1}
              }],
        totalPrice: {type:Number, require:[true,"Holds total price of all the items in the cart"]},
        totalItems: {type:Number, require:[true,"Holds total number of items in the cart"]},
        totalQuantity: {type:Number, require:["Holds total number of quantity in the cart"]},
-       cancellable: {boolean, default: true},
+       cancellable: {type:Boolean, default: true},
        status: {type:String, default: 'pending', enum:['pending', 'completed', 'cancled']},
        deletedAt: {type:Date}, 
-       isDeleted: {boolean, default: false},
+       isDeleted: {type:Boolean, default: false},
       },{timestamps:true})
 
-      module.exports = mongoose.Model('order',orderSchema);
+      module.exports = mongoose.model('order',orderSchema);
