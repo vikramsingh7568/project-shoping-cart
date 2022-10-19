@@ -4,7 +4,7 @@ const {createUser,loginUser, userDetails , updateUser} = require("../controller/
 const { createProduct, getByFilter,getById,deleteProduct, updateProduct } =  require("../controller/ProductController")
 const {createCart ,updateCart,getCartDetails,deleteCart} = require("../controller/cartController")
 const {authorise, authenticate}= require("../middlewares/auth")
-const  {createOrder} = require('../controller/orderController')
+const  {createOrder,updateOrder} = require('../controller/orderController')
 //user creation part
 router.post("/register",createUser)
 router.post("/login",loginUser)
@@ -20,12 +20,15 @@ router.delete("/products/:productId",deleteProduct)
 
 // cart creation part 
 
-router.post( "/users/:userId/cart",createCart)
+router.post( "/users/:userId/cart",authenticate,authorise,createCart)
 router.delete("/users/:userId/cart",authenticate,authorise,deleteCart)
 
 //----------------------------OrderCreate------------------------------//
 
 router.post("/users/:userId/orders",createOrder)
+router.put("/users/:userId/orders",authenticate,authorise, updateOrder)
+
+
 
 
 
