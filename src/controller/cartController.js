@@ -88,14 +88,13 @@ const createCart = async function (req, res) {
           .status(400)
           .send({ status: true, message: "This cart id is not available" });
       }
-      let quantity = 0;
+      let quantity = 1;
       let arr = cart.items;
 
       let isExist = false;
       for (let i = 0; i < cart.items.length; i++) {
         if (cart.items[i].productId == productId) {
           isExist = true;
-          quantity++;
           cart.items[i].quantity += quantity;
         }
       }

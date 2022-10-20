@@ -20,8 +20,8 @@ router.delete("/products/:productId",deleteProduct)
 
 // cart creation part 
 
-router.post( "/users/:userId/cart",authenticate,authorise,createCart)
-router.delete("/users/:userId/cart",authenticate,authorise,deleteCart)
+router.post( "/users/:userId/cart",createCart)
+router.delete("/users/:userId/cart",deleteCart)
 
 //----------------------------OrderCreate------------------------------//
 
