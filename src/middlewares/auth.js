@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { isValidId } = require("../validators/validation");
+const { isValidId, isValid } = require("../validators/validation");
 const mongoose = require("mongoose")
 const userModel = require("../models/UserModel");
 
@@ -40,7 +40,7 @@ const authorise = async function (req, res,next) {
     let userId = req.params.userId;
     let allowedUser = req.decodedToken.id;
   
-    if (!isValidId(userId))
+    if (!isValid(userId) ||!isValidId(userId))
       return res.status(400).send({ status: false, message: "Invalid UserId" });
 
     let user = await userModel.findOne({_id:userId, isDeleted: false});

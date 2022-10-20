@@ -160,6 +160,7 @@ const updateCart = async function (req, res) {
       return res
         .status(400)
         .send({ status: false, message: "Invalid productId" });
+
     let product = await productModel.findOne({ _id: productId });
     if (!product)
       return res
@@ -187,39 +188,71 @@ const updateCart = async function (req, res) {
     let items = cart.items.filter(
       (product) => product["productId"].toString() === productId
     );
+
     if (items.length == 0)
       return res.status(400).send({
         status: false,
         message: `No product with ${productId} exists in cart`,
       });
 
-    if (removeProduct === 1) {
-      items[0].quantity = items[0].quantity - 1;
-      cart.totalPrice = cart.totalPrice - product.price;
 
-      if (items[0].quantity === 0) {
-        cart.totalItems = cart.totalItems - 1;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].productId == productId) {
+        let totalProductprice = items[i].quantity * product.price;
+        if (removeProduct === 0) {
+          const updateProductItem = await cartModel.findOneAndUpdate(
+            { _id: cartId },
+            {
+              $pull: { items: { productId: productId } },
+              totalPrice: cart.totalPrice - totalProductprice,
+              totalItems: cart.totalItems - 1,
+            },
+            { new: true }
+          );
+          return res
+            .status(200)
+            .send({
+              status: true,
+              msg: "sucessfully removed product",
+              data: updateProductItem,
+            });
+        }
+        if (removeProduct === 1) {
+          if (items[i].quantity === 1 && removeProduct === 1) {
+            const removeCart = await cartModel.findOneAndUpdate(
+              { _id: cartId },
+              {
+                $pull: { items: { productId: productId } },
+                totalPrice: cart.totalPrice - totalProductprice,
+                totalItems: cart.totalItems - 1,
+              },
+              { new: true }
+            );
+            return res
+              .status(200)
+              .send({
+                status: true,
+                msg: "sucessfully removed product or cart is empty",
+                data: removeCart,
+              });
+          }
+          items[i].quantity = items[i].quantity - 1;
+          const updateCart = await cartModel.findByIdAndUpdate(
+            { _id: cartId },
+            { items: items, totalPrice: cart.totalPrice - product.price },
+            { new: true }
+          );
+          return res
+            .status(200)
+            .send({
+              status: true,
+              msg: "sucessfully decress product",
+              data: updateCart,
+            });
+        }
       }
-      return res
-        .status(200)
-        .send({ status: true, message: "Successfully updated", data: cart });
-    } else {
-      let finalPrice = cart.totalPrice - product.price * items[0].quantity;
-      let deleteProduct = await cartModel.findOneAndUpdate(
-        { _id: cartId },
-        {
-          $pull: { items: { productId: productId } },
-          totalPrice: cart.totalPrice - finalPrice,
-          totalItems: cart.totalItems - 1,
-        },
-        { new: true }
-      );
-      return res.status(200).send({
-        status: true,
-        message: "Successfully updated",
-        data: deleteProduct,
-      });
     }
+   
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
   }
@@ -230,9 +263,9 @@ const getCartDetails = async function (req, res) {
     let userId = req.params.userId;
 
     //checking if the cart exist with this userId or not
-    let findCart = await cartModel.findOne({ userId: userId }).populate(
-      "items.productId"
-    );
+    let findCart = await cartModel
+      .findOne({ userId: userId })
+      .populate("items.productId");
     if (!findCart)
       return res
         .status(404)
