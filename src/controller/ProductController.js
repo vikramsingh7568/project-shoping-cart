@@ -224,7 +224,7 @@ const getByFilter = async function (req, res) {
         .status(404)
         .send({ status: false, message: "No product found" });
 
-    return res.status(200).send({ status: true, data: productDetail });
+    return res.status(200).send({ status: true, message:"Success", data: productDetail });
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
