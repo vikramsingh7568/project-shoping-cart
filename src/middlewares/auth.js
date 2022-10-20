@@ -39,12 +39,11 @@ const authorise = async function (req, res,next) {
   try {
     let userId = req.params.userId;
     let allowedUser = req.decodedToken.id;
-    console.log(allowedUser)
-
+  
     if (!isValidId(userId))
       return res.status(400).send({ status: false, message: "Invalid UserId" });
 
-    let user = await userModel.findById(userId);
+    let user = await userModel.findOne({_id:userId, isDeleted: false});
     if (!user)
       return res
         .status(404)

@@ -26,7 +26,7 @@ router.delete("/users/:userId/cart",authenticate,authorise,deleteCart)
 //----------------------------OrderCreate------------------------------//
 
 router.post("/users/:userId/orders",createOrder)
-router.put("/users/:userId/orders",authenticate,authorise, updateOrder)
+router.put("/users/:userId/orders", updateOrder)
 
 
 
