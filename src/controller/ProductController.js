@@ -182,112 +182,53 @@ const createProduct = async function (req, res) {
   }
 };
 
-//===========get product details by queries==============================//
 
-const getByFilter = async (req, res) => {
+//====================================get product============================================
+const getByFilter = async function (req, res) {
   try {
     let data = req.query;
-    let conditions = { isDeleted: false };
+    let { size, name, priceLessThan } = data; //Destructuring
 
-    //checking for any queries
-    if (!isValid(data)) {
-      //getting the products
-      let getProducts = await productModel.find(conditions).sort({ price: 1 });
-      if (getProducts.length == 0)
-        return res
-          .status(404)
-          .send({ status: false, message: "No products found" });
+    // if (!data) return res.status(400).send({ status: false, message: "please give some data to get products list" })
 
-      return res.status(200).send({
-        status: true,
-        count: getProducts.length,
-        message: "Success",
-        data: getProducts,
+    let ndata = {};
+
+    if (size) {
+      let sizeArr = size.replace(/\s+/g, "").split(",");
+      var uniqueSize = sizeArr.filter(function (item, i, ar) {
+        return ar.indexOf(item) === i;
       });
-    }
 
-    //validating the filter - SIZE
-    if (data.size) {
-      data.size = data.size.toUpperCase();
-      if (!isValid(data.size))
-        return res.status(400).send({
-          status: false,
-          message: "Enter a valid value for size and remove spaces",
-        });
+      let arr = ["S", "XS", "M", "X", "L", "XXL", "XL"];
 
-      conditions.availableSizes = {};
-      conditions.availableSizes["$in"] = [data.size];
-    }
-
-    //validating the filter - NAME
-    if (data.name || typeof data.name == "string") {
-      if (!isValid(data.name))
-        return res.status(400).send({
-          status: false,
-          message: "Enter a valid value for product name and remove spaces",
-        });
-
-      //using $regex to match the names of products & "i" for case insensitive.
-      conditions.title = {};
-      conditions.title["$regex"] = data.name;
-      conditions.title["$options"] = "i";
-    }
-
-    //validating the filter - PRICEGREATERTHAN
-    if (data.priceGreaterThan) {
-      if (!isValidString(data.priceGreaterThan))
-        return res.status(400).send({
-          status: false,
-          message: "Price of product should be in numbers",
-        });
-
-      data.priceGreaterThan = JSON.parse(data.priceGreaterThan);
-      if (isValidNumber(data.priceGreaterThan))
-        return res
-          .status(400)
-          .send({ status: false, message: "Price of product should be valid" });
-
-      if (!conditions.price) {
-        conditions.price = {};
+      for (let i = 0; i < uniqueSize.length; i++) {
+        if (!arr.includes(uniqueSize[i]))
+          return res.status(400).send({
+            status: false,
+            data: "Enter a Valid Size, Like 'XS or S or M or X or L or XL or XXL'",
+          });
       }
-      conditions.price["$gte"] = data.priceGreaterThan;
+      ndata.availableSizes = { $in: sizeArr };
+    }
+    if (name) {
+      ndata.title = { $regex: name, $options: "i" };
     }
 
-    //validating the filter - PRICELESSTHAN
-    if (data.priceLessThan) {
-      if (!isValidString(data.priceLessThan))
-        return res.status(400).send({
-          status: false,
-          message: "Price of product should be in numbers",
-        });
-
-      data.priceLessThan = JSON.parse(data.priceLessThan);
-      if (isValidNumber(data.priceLessThan))
-        return res
-          .status(400)
-          .send({ status: false, message: "Price of product should be valid" });
-
-      if (!conditions.price) {
-        conditions.price = {};
-      }
-      conditions.price["$lte"] = data.priceLessThan;
+    if (priceLessThan) {
+      ndata.price = { $lt: Number(priceLessThan) };
     }
 
-    //get the products with the condition provided
-    let getFilterData = await productModel.find(conditions).sort({ price: 1 });
-    if (getFilterData.length == 0)
+    let productDetail = await productModel
+      .find({ isDeleted: false, ...ndata })
+      .sort({ price: 1 });
+    if (productDetail.length == 0)
       return res
         .status(404)
-        .send({ status: false, message: "No products found" });
+        .send({ status: false, message: "No product found" });
 
-    res.status(200).send({
-      status: true,
-      count: getFilterData.length,
-      message: "Success",
-      data: getFilterData,
-    });
+    return res.status(200).send({ status: true, data: productDetail });
   } catch (err) {
-    res.status(500).send({ status: false, error: err.message });
+    return res.status(500).send({ status: false, message: err.message });
   }
 };
 

@@ -15,7 +15,7 @@ router.put("/user/:userId/profile",authenticate, authorise, updateUser )
 
 //product creation part 
 router.post("/products",createProduct)
-router.get("/products", getByFilter)
+router.get("/productss", getByFilter)
 router.get("/products/:productId",getById)
 router.put("/products/:product_id",updateProduct)
 router.delete("/products/:productId",deleteProduct)
