@@ -9,12 +9,19 @@ const {
   isValidPrice,
   isValidAvailableSizes,
   isValidId,
-  isValidFile
+  isValidBody
 } = require("../validators/validation");
 
 const createProduct = async function (req, res) {
   try {
     let data = req.body;
+
+    if(isValidBody(data))
+    return res.status(400).send({
+      status: false,
+      message: "Request body can't be empty",
+    });
+
 
     let {
       title,
@@ -151,25 +158,16 @@ const createProduct = async function (req, res) {
 
     //aws s3 profileImage upload
     let files = req.files;
-    if (files && files.length > 0) {
-      if (!isValidFile(files[0].originalname))
-      return res.status(400).send({ status: false, message: `Enter format jpeg/jpg/png only.` })
 
-      let fileUploaded = await uploadFile(files[0]);
+    if (!(files && files.length)) {
+      return res.status(400).send({
+        status: false,
+        message: "Found Error in Uploading files...",
+      });
+    }
+    let fileUploaded = await uploadFile(files[0]);
     data.productImage = fileUploaded;
-    }
-    else {
-      return res.status(400).send({ message: "No file found" })
-    }
 
-    // if (!(files && files.length)) {
-    //   return res.status(400).send({
-    //     status: false,
-    //     message: "Found Error in Uploading files...",
-    //   });
-    // }
-    // let fileUploaded = await uploadFile(files[0]);
-    // data.productImage = fileUploaded;
 
     let product = await productModel.create(data);
     return res.status(201).send({
@@ -392,11 +390,6 @@ const updateProduct = async function (req, res) {
       updates["$set"]["description"] = description.trim();
     }
 
-    // const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
-
-    // return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
-
-    // if request body has key name "price" then after validating its value, same is added to updates object
     if (price) {
       if (!isValidPrice(price)) {
         return res
@@ -407,12 +400,6 @@ const updateProduct = async function (req, res) {
       updates["$set"]["price"] = price;
     }
 
-    //const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
-
-    //return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
-
-    // if request body has key name "isFreeShipping" then after validating its value, same is added to updates object
-
     if (isFreeShipping) {
       if (["true", "false"].includes(isFreeShipping) === false) {
         return res
@@ -421,10 +408,6 @@ const updateProduct = async function (req, res) {
       }
       updates["$set"]["isFreeShipping"] = isFreeShipping;
     }
-
-    // const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
-
-    // return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
 
     //---- if request body has key name "style" then after validating its value, same is added to updates object
     if (style) {
@@ -436,9 +419,6 @@ const updateProduct = async function (req, res) {
       updates["$set"]["style"] = style;
     }
 
-    //const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, updates, { new: true });
-
-    //return res.status(200).send({ status: true, message: "Product data updated successfully", data: updatedProduct });
 
     if (availableSizes) {
       if (typeof (availableSizes == "string")) {
@@ -464,8 +444,7 @@ const updateProduct = async function (req, res) {
             message: `avilablesize is ["S", "XS", "M", "X", "L", "XXL", "XL"] select size from avilablesize`,
           });
       }
-      // }
-      console.log("hi", updates);
+
 
       let availableArray = ProductInformation.availableSizes;
       for (let i = 0; i < availableArray.length; i++) {
@@ -495,7 +474,7 @@ const updateProduct = async function (req, res) {
 
     let imageone = req.files;
     if (productImage) {
-      if (!(imageone && imageone.length)) {
+      if (!(imageone || imageone.length)) {
         return res.status(400).send({
           status: false,
           message: "Found Error in Uploading files...",
@@ -559,7 +538,7 @@ const deleteProduct = async function (req, res) {
       { isDeleted: true, deletedAt: Date.now() }
     );
     res
-      .status(201)
+      .status(200)
       .send({ status: true, message: "Successfully deleted the product" });
   } catch (error) {
     res.status(500).send({ status: false, Error: err.message });
