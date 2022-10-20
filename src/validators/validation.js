@@ -68,6 +68,16 @@ const isValidAvailableSizes = (availablesizes) => {
   return true
 };        
 
+const isValidWords = function (name) {
+  if (/^[a-z0-9 ,.#-]+$/i.test(name)) return true;
+  return false;
+};
+
+const isValidFile = (img) => {
+  const regex = /(\/*\.(?:png|gif|webp|jpeg|jpg))/.test(img)
+  return regex
+}
+
 
 module.exports = {
   isValid,
@@ -81,5 +91,7 @@ module.exports = {
   isValidId,
   isValidNumber,
   isValidPrice,
-  isValidAvailableSizes
+  isValidAvailableSizes,
+  isValidWords,
+  isValidFile
 };

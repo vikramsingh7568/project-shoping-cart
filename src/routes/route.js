@@ -5,6 +5,8 @@ const { createProduct, getByFilter,getById,deleteProduct, updateProduct } =  req
 const {createCart ,updateCart,getCartDetails,deleteCart} = require("../controller/cartController")
 const {authorise, authenticate}= require("../middlewares/auth")
 const  {createOrder,updateOrder} = require('../controller/orderController')
+
+
 //user creation part
 router.post("/register",createUser)
 router.post("/login",loginUser)
@@ -21,12 +23,14 @@ router.delete("/products/:productId",deleteProduct)
 // cart creation part 
 
 router.post( "/users/:userId/cart",authenticate,authorise,createCart)
+router.put( "/users/:userId/cart",authenticate,authorise,updateCart)
+
 router.delete("/users/:userId/cart",authenticate,authorise,deleteCart)
 
 //----------------------------OrderCreate------------------------------//
 
-router.post("/users/:userId/orders",createOrder)
-router.put("/users/:userId/orders", updateOrder)
+router.post("/users/:userId/orders",authenticate,authorise,createOrder)
+router.put("/users/:userId/orders", authenticate,authorise,updateOrder)
 
 
 
