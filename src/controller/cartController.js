@@ -4,10 +4,6 @@ const userModel = require("../models/UserModel");
 const productModel = require("../models/productModel");
 const {
   isValid,
-  isValidString,
-  isValidNumber,
-  isValidPrice,
-  isValidAvailableSizes,
   isValidId,
   isValidBody,
 } = require("../validators/validation");

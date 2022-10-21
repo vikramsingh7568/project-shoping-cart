@@ -54,7 +54,7 @@ const createOrder = async (req, res) => {
     obj.totalQuantity = totalQuantity;
 
     let crearedata = await orderModel.create(obj);
-    return res.status(201).send({ status: false, data: crearedata });
+    return res.status(201).send({ status: true, data: crearedata });
   } catch (err) {
     res.status(500).send({ status: false, error: err.message });
   }
@@ -124,3 +124,4 @@ const updateOrder = async function (req, res) {
 
 
 module.exports = { createOrder, updateOrder };
+
